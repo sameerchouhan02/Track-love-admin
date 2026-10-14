@@ -736,6 +736,11 @@ textarea.form-control {
   opacity: 1;
   pointer-events: auto;
 }
+@media (max-width: 1024px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -744,6 +749,9 @@ textarea.form-control {
   }
   .content {
     padding: 20px 16px;
+  }
+    .hide-on-mobile {
+    display: none !important;
   }
   .appbar {
     padding: 0 16px;

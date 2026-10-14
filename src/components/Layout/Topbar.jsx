@@ -28,7 +28,7 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto', flexShrink: 0  }}>
         {/* Language Pill Switcher */}
         <div className="lang-switcher">
           <button 
@@ -76,7 +76,7 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi }) => {
           }}>
             AD
           </div>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', whiteSpace: 'nowrap'  }}>
             Super Admin
           </span>
         </div>

@@ -1,28 +1,24 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { adminApi } from '../../_config/api';
 
 const AdminLogin = ({ onLogin, isHindi, setIsHindi }) => {
   const [email, setEmail] = useState('admin@tracklovedones.com');
   const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const t = (en, hi) => (isHindi ? hi : en);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3002/api/v1/admin_login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const result = await response.json();
+      const response = await adminApi.login(email, password);
+      const result = response.data;
 
       if (result.success && result.data?.token) {
         // Live token save karo
@@ -32,8 +28,10 @@ const AdminLogin = ({ onLogin, isHindi, setIsHindi }) => {
         setError(result.message || t('Invalid email or password.', 'अमान्य ईमेल या पासवर्ड।'));
       }
     } catch (err) {
-      console.error(err);
-      setError(t('Cannot connect to server.', 'सर्वर से कनेक्ट नहीं हो पा रहा है।'));
+      console.error('Login error:', err);
+      setError(err.message || t('Cannot connect to server.', 'सर्वर से कनेक्ट नहीं हो पा रहा है।'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -187,10 +185,11 @@ const AdminLogin = ({ onLogin, isHindi, setIsHindi }) => {
           {/* Submit Button */}
           <button 
             type="submit" 
+            disabled={loading}
             className="btn btn-primary" 
-            style={{ width: '100%', padding: '14px', fontSize: '15px', borderRadius: '14px' }}
+            style={{ width: '100%', padding: '14px', fontSize: '15px', borderRadius: '14px', opacity: loading ? 0.7 : 1 }}
           >
-            <span>{t('Login to Dashboard', 'डैशबोर्ड में लॉग इन करें')}</span>
+            <span>{loading ? t('Logging in...', 'लॉग इन हो रहा है...') : t('Login to Dashboard', 'डैशबोर्ड में लॉग इन करें')}</span>
             <ArrowRight size={18} />
           </button>
         </form>

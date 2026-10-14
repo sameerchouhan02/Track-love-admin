@@ -4,15 +4,14 @@ import {
   Download, 
   Eye, 
   Ban, 
-  CheckCircle, 
   Phone, 
   Mail, 
   MapPin, 
   X, 
   ShieldCheck 
 } from 'lucide-react';
+import { adminApi } from '../../_config/api';
 
-// ✅ Ye paste karein:
 const Users = ({ isHindi }) => {
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,21 +21,13 @@ const Users = ({ isHindi }) => {
 
   const t = (en, hi) => (isHindi ? hi : en);
 
-  // 🔄 Backend se Live Users lana
+  // 🔄 Backend se Live Users lana via Axios
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('admin_token');
-
-        const res = await fetch('http://localhost:3002/api/v1/admin/users', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const result = await res.json();
+        const res = await adminApi.getUsers();
+        const result = res.data;
 
         if (result.success && Array.isArray(result.data)) {
           // MongoDB data ko table ke hisaab se format karo
@@ -49,7 +40,8 @@ const Users = ({ isHindi }) => {
               phone: u.phone || 'N/A',
               city: u.city || u.villageTown || u.state || 'India',
               date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),              role: u.profession || u.adminrole || 'Standard User',
+              status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),
+              role: u.profession || u.adminrole || 'Standard User',
               avatarBg: colors[index % colors.length]
             };
           });
@@ -78,15 +70,8 @@ status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),        
 
   const handleToggleBlock = async (userId) => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:3002/api/v1/admin/user/${userId}/toggle-block`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await res.json();
+      const res = await adminApi.toggleBlockUser(userId);
+      const data = res.data;
       if (data.success) {
         // UI me status turant badal do
         setUsersList(prev => prev.map(u => {
@@ -181,7 +166,13 @@ status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),        
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
+                  {t('Loading users...', 'उपयोगकर्ता लोड हो रहे हैं...')}
+                </td>
+              </tr>
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <tr key={user.id}>
                   <td>

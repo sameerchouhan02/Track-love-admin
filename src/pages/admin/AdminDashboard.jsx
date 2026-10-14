@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   CreditCard, 
@@ -7,12 +7,33 @@ import {
   TrendingUp, 
   ArrowUpRight, 
   Activity, 
-  FileCheck2, 
-  ExternalLink 
+  FileCheck2 
 } from 'lucide-react';
+import { adminApi } from '../../_config/api';
 
 const AdminDashboard = ({ isHindi }) => {
+  const [totalUsers, setTotalUsers] = useState(null);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
   const t = (en, hi) => (isHindi ? hi : en);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoadingUsers(true);
+        const res = await adminApi.getUsers();
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          setTotalUsers(res.data.data.length);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <div className="content">
@@ -77,7 +98,7 @@ const AdminDashboard = ({ isHindi }) => {
               <Users size={22} />
             </div>
           </div>
-          <span className="stat-value">12,458</span>
+          <span className="stat-value">{loadingUsers ? '...' : (totalUsers !== null ? totalUsers.toLocaleString() : '0')}</span>
           <span className="stat-trend trend-up">
             <TrendingUp size={14} /> +12.4% {t('this month', 'इस महीने')}
           </span>
