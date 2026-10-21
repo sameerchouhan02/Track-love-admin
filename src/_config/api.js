@@ -2,7 +2,7 @@
 import axios from "axios";
 import { handleResponse } from "./authService";
 
-const BACKEND_URL = "https://loveable-backend.vercel.app/api/v1";
+const BACKEND_URL = "https://loveable-backend-5qi0.onrender.com/api/v1";
 // const BACKEND_URL = "http://localhost:3002/api/v1";
 
 /**
@@ -71,7 +71,18 @@ export const adminApi = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getLawContent: (params = {}) => apiClient.get("/law-content", { params }),
+
+  // 👇 Ye lines add karni hain:
+  // 4. Admin Profile Management
+  getProfile: () => apiClient.get("/admin/profile"),
+  updateProfile: (formData) =>
+    apiClient.put("/admin/profile", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+      changePassword: (data) => apiClient.put("/admin/change-password", data),
+
 };
+
 
 /**
  * Generic request helper using axios

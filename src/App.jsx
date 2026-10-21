@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import Topbar from './components/Layout/Topbar';
 import Sidebar from './components/Layout/Sidebar';
+import { adminApi } from './_config/api';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Users from './pages/admin/Users';
+import BusinessProfiles from './pages/admin/BusinessProfiles';
 import BusinessPosts from './pages/admin/BusinessPosts';
 import JobPosts from './pages/admin/JobPosts';
 import ChatReports from './pages/admin/ChatReports';
@@ -19,6 +21,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import { 
   LayoutDashboard, 
   Users as UsersIcon, 
+  Building2,
   Briefcase, 
   FileText, 
   ShieldAlert, 
@@ -34,6 +37,7 @@ import './index.css';
 const navItems = [
   { icon: LayoutDashboard, hi: 'डैशबोर्ड', en: 'Dashboard', path: '/' },
   { icon: UsersIcon, hi: 'उपयोगकर्ता', en: 'Users', path: '/users' },
+  { icon: Building2, hi: 'व्यापार प्रोफ़ाइल', en: 'Business Profiles', path: '/business-profiles' },
   // { icon: Briefcase, hi: 'व्यापार पोस्ट', en: 'Business Posts', path: '/business-posts' },
   // { icon: FileText, hi: 'नौकरी पोस्ट', en: 'Job Posts', path: '/job-posts' },
   // { icon: ShieldAlert, hi: 'चैट रिपोर्ट', en: 'Chat Reports', path: '/chat-reports' },
@@ -48,6 +52,14 @@ const navItems = [
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('admin_logged_in') === 'true';
+  });
+  const [adminProfile, setAdminProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_user_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [isHindi, setIsHindi] = useState(false);
@@ -71,6 +83,32 @@ function AppContent() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fetch admin profile on auth
+  useEffect(() => {
+    if (isAuthenticated) {
+      adminApi.getProfile()
+        .then((res) => {
+          if (res.data?.success && res.data?.data) {
+            setAdminProfile(res.data.data);
+            localStorage.setItem('admin_user_data', JSON.stringify(res.data.data));
+          }
+        })
+        .catch((err) => console.error("Error loading admin profile:", err));
+    }
+  }, [isAuthenticated]);
+
+  // Listen for real-time profile update event from AdminProfile page
+  useEffect(() => {
+    const handleProfileUpdated = (e) => {
+      if (e.detail) {
+        setAdminProfile(e.detail);
+        localStorage.setItem('admin_user_data', JSON.stringify(e.detail));
+      }
+    };
+    window.addEventListener('admin_profile_updated', handleProfileUpdated);
+    return () => window.removeEventListener('admin_profile_updated', handleProfileUpdated);
+  }, []);
+
   const handleLogin = () => {
     localStorage.setItem('admin_logged_in', 'true');
     setIsAuthenticated(true);
@@ -82,6 +120,8 @@ function AppContent() {
   const handleLogout = () => {
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_token'); // 👈 Ye 1 line add kar dein
+    localStorage.removeItem('admin_user_data');
+    setAdminProfile(null);
     setIsAuthenticated(false);
     navigate('/login');
   };
@@ -113,6 +153,7 @@ function AppContent() {
         navItems={navItems}
         activePath={activePath}
         onLogout={handleLogout}
+        adminProfile={adminProfile}
       />
       
       <div className="main-content-wrapper">
@@ -122,12 +163,14 @@ function AppContent() {
           setIsHindi={setIsHindi} 
           titleEn={activeItem.en}
           titleHi={activeItem.hi}
+          adminProfile={adminProfile}
         />
         
         <div className="main-content">
           <Routes>
             <Route path="/" element={<AdminDashboard isHindi={isHindi} />} />
             <Route path="/users" element={<Users isHindi={isHindi} />} />
+            <Route path="/business-profiles" element={<BusinessProfiles isHindi={isHindi} />} />
             <Route path="/business-posts" element={<BusinessPosts isHindi={isHindi} />} />
             <Route path="/job-posts" element={<JobPosts isHindi={isHindi} />} />
             <Route path="/chat-reports" element={<ChatReports isHindi={isHindi} />} />

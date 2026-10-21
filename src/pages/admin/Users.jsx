@@ -8,72 +8,59 @@ import {
   Mail, 
   MapPin, 
   X, 
-  ShieldCheck 
+  ShieldCheck, 
+  Users as UsersIcon 
 } from 'lucide-react';
 import { adminApi } from '../../_config/api';
 
 const Users = ({ isHindi }) => {
   const [usersList, setUsersList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState('All');
   const [selectedUser, setSelectedUser] = useState(null);
 
   const t = (en, hi) => (isHindi ? hi : en);
 
-  // 🔄 Backend se Live Users lana via Axios
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const res = await adminApi.getUsers();
-        const result = res.data;
+  // Fetch Standard Users API (/api/v1/admin/users)
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const res = await adminApi.getUsers();
+      const result = res.data;
 
-        if (result.success && Array.isArray(result.data)) {
-          // MongoDB data ko table ke hisaab se format karo
-          const formatted = result.data.map((u, index) => {
-            const colors = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#6366f1'];
-            return {
-              id: u._id,
-              name: u.name || 'Unnamed',
-              email: u.email,
-              phone: u.phone || 'N/A',
-              city: u.city || u.villageTown || u.state || 'India',
-              date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-              status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),
-              role: u.profession || u.adminrole || 'Standard User',
-              avatarBg: colors[index % colors.length]
-            };
-          });
-
-          setUsersList(formatted);
-        }
-      } catch (err) {
-        console.error('Error fetching users:', err);
-      } finally {
-        setLoading(false);
+      if (result.success && Array.isArray(result.data)) {
+        const colors = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#6366f1'];
+        const formatted = result.data.map((u, index) => ({
+          id: u._id,
+          name: u.name || 'Unnamed',
+          email: u.email,
+          phone: u.phone || 'N/A',
+          city: u.city || u.villageTown || u.state || 'India',
+          date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),
+          role: u.profession || u.adminrole || (u.role === 'company' ? 'Company Account' : 'Standard User'),
+          avatarBg: colors[index % colors.length]
+        }));
+        setUsersList(formatted);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filter Search
-  const filteredUsers = usersList.filter(u => {
-    const matchesSearch = 
-      (u.name && u.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (u.phone && u.phone.includes(searchTerm));
-    const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
+  // Toggle Block Standard User
   const handleToggleBlock = async (userId) => {
     try {
       const res = await adminApi.toggleBlockUser(userId);
       const data = res.data;
       if (data.success) {
-        // UI me status turant badal do
         setUsersList(prev => prev.map(u => {
           if (u.id === userId) {
             return {
@@ -89,31 +76,31 @@ const Users = ({ isHindi }) => {
     }
   };
 
-// const Users = ({ isHindi }) => {
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [statusFilter, setStatusFilter] = useState('All');
-//   const [selectedUser, setSelectedUser] = useState(null);
-
-//   const t = (en, hi) => (isHindi ? hi : en);
-
-//   const filteredUsers = mockUsers.filter(u => {
-//     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//                           u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//                           u.phone.includes(searchTerm);
-//     const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
-//     return matchesSearch && matchesStatus;
-//   });
+  // Filter Search for Users
+  const filteredUsers = usersList.filter(u => {
+    const term = userSearchTerm.toLowerCase();
+    const matchesSearch = 
+      (u.name && u.name.toLowerCase().includes(term)) ||
+      (u.email && u.email.toLowerCase().includes(term)) ||
+      (u.phone && u.phone.includes(term));
+    const matchesStatus = userStatusFilter === 'All' || u.status === userStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="content">
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
         <div>
-          <h2 className="page-title" style={{ margin: 0 }}>
+          <h2 className="page-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <UsersIcon size={26} color="#0f172a" />
             {t('User Management', 'उपयोगकर्ता प्रबंधन')}
           </h2>
           <p className="page-subtitle" style={{ margin: '4px 0 0 0' }}>
-            {t('Manage all registered platform accounts, view profiles, and enforce safety policies.', 'पंजीकृत उपयोगकर्ताओं को प्रबंधित करें, प्रोफ़ाइल देखें और नीतियां लागू करें।')}
+            {t(
+              'Manage registered individual users, view contact details, and control platform access.', 
+              'पंजीकृत उपयोगकर्ताओं को प्रबंधित करें, संपर्क विवरण देखें और पहुंच नियंत्रित करें।'
+            )}
           </p>
         </div>
         <button className="btn btn-primary">
@@ -129,8 +116,8 @@ const Users = ({ isHindi }) => {
           <input 
             type="text" 
             placeholder={t('Search by name, email or phone...', 'नाम, ईमेल या फोन से खोजें...')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={userSearchTerm}
+            onChange={(e) => setUserSearchTerm(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', fontFamily: 'inherit' }}
           />
         </div>
@@ -141,8 +128,8 @@ const Users = ({ isHindi }) => {
           </span>
           <select 
             className="form-control" 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={userStatusFilter}
+            onChange={(e) => setUserStatusFilter(e.target.value)}
             style={{ width: 'auto', padding: '8px 14px', fontSize: '13.5px' }}
           >
             <option value="All">{t('All Statuses', 'सभी स्थितियां')}</option>
@@ -166,10 +153,11 @@ const Users = ({ isHindi }) => {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {loadingUsers ? (
               <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
-                  {t('Loading users...', 'उपयोगकर्ता लोड हो रहे हैं...')}
+                <td colSpan="5" style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
+                  <UsersIcon size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
+                  <div>{t('Loading users...', 'उपयोगकर्ता लोड हो रहे हैं...')}</div>
                 </td>
               </tr>
             ) : filteredUsers.length > 0 ? (
@@ -234,15 +222,14 @@ const Users = ({ isHindi }) => {
                         <Eye size={14} />
                         {t('View', 'देखें')}
                       </button>
-<button 
-  className={`btn ${user.status === 'Blocked' ? 'btn-secondary' : 'btn-danger'} btn-sm`}
-  onClick={() => handleToggleBlock(user.id)}
-  title={user.status === 'Blocked' ? t('Unblock', 'अनब्लॉक') : t('Block', 'ब्लॉक')}
->
-  <Ban size={14} />
-  {user.status === 'Blocked' ? t('Unblock', 'अनब्लॉक') : t('Block', 'ब्लॉक')}
-</button>
-
+                      <button 
+                        className={`btn ${user.status === 'Blocked' ? 'btn-secondary' : 'btn-danger'} btn-sm`}
+                        onClick={() => handleToggleBlock(user.id)}
+                        title={user.status === 'Blocked' ? t('Unblock', 'अनब्लॉक') : t('Block', 'ब्लॉक')}
+                      >
+                        <Ban size={14} />
+                        {user.status === 'Blocked' ? t('Unblock', 'अनब्लॉक') : t('Block', 'ब्लॉक')}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -250,7 +237,10 @@ const Users = ({ isHindi }) => {
             ) : (
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
-                  {t('No users found matching your search.', 'आपकी खोज से मेल खाने वाले कोई उपयोगकर्ता नहीं मिले।')}
+                  <UsersIcon size={36} color="#cbd5e1" style={{ marginBottom: '12px' }} />
+                  <div style={{ fontWeight: '600', fontSize: '15px', color: 'var(--text-main)' }}>
+                    {t('No users found matching your search.', 'आपकी खोज से मेल खाने वाले कोई उपयोगकर्ता नहीं मिले।')}
+                  </div>
                 </td>
               </tr>
             )}
@@ -258,7 +248,9 @@ const Users = ({ isHindi }) => {
         </table>
       </div>
 
-      {/* User Details Modal */}
+      {/* ========================================================================= */}
+      {/* 🔍 MODAL: VIEW INDIVIDUAL USER DETAILS                                     */}
+      {/* ========================================================================= */}
       {selectedUser && (
         <div style={{
           position: 'fixed',
@@ -280,7 +272,6 @@ const Users = ({ isHindi }) => {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             border: '1px solid #e2e8f0'
           }}>
-            {/* Modal Header Banner */}
             <div style={{
               background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
               padding: '24px',
@@ -334,7 +325,6 @@ const Users = ({ isHindi }) => {
               </div>
             </div>
 
-            {/* Modal Body Info */}
             <div style={{ padding: '24px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', background: '#f8fafc' }}>

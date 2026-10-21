@@ -17,6 +17,8 @@ import {
   Clock,
   Database
 } from 'lucide-react';
+import { adminApi } from '../../_config/api';
+
 
 const AdminSettings = ({ isHindi }) => {
   const t = (en, hi) => (isHindi ? hi : en);
@@ -30,6 +32,8 @@ const AdminSettings = ({ isHindi }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
+  const [loadingPassword, setLoadingPassword] = useState(false);
+
 
   // Security toggles
   const [twoFactorAuth, setTwoFactorAuth] = useState(true);
@@ -52,22 +56,45 @@ const AdminSettings = ({ isHindi }) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
   };
-
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (!currentPassword || !newPassword) {
-      showToast(t('Please fill in password fields.', 'कृपया सभी पासवर्ड फ़ील्ड भरें।'));
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast(t('Please fill in all password fields.', 'कृपया सभी पासवर्ड फ़ील्ड भरें।'));
       return;
     }
+
+    if (newPassword.length < 8) {
+      showToast(t('New password must be at least 8 characters.', 'नया पासवर्ड कम से कम 8 अक्षर का होना चाहिए।'));
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       showToast(t('New passwords do not match!', 'नया पासवर्ड मेल नहीं खाता!'));
       return;
     }
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    showToast(t('Admin password updated successfully!', 'एडमिन पासवर्ड सफलतापूर्वक अपडेट हो गया!'));
+
+    try {
+      setLoadingPassword(true);
+      const res = await adminApi.changePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      if (res.data?.success) {
+        showToast(t('Admin password updated successfully!', 'एडमिन पासवर्ड सफलतापूर्वक अपडेट हो गया!'));
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err) {
+      const msg = err.message || t('Failed to update password', 'पासवर्ड अपडेट करने में विफल');
+      showToast(msg);
+    } finally {
+      setLoadingPassword(false);
+    }
   };
+
 
   const handleSavePreferences = () => {
     showToast(t('Platform configuration saved successfully!', 'प्लेटफ़ॉर्म प्राथमिकताएं सफलतापूर्वक सुरक्षित हो गईं!'));
@@ -144,7 +171,7 @@ const AdminSettings = ({ isHindi }) => {
           {t('Security & 2FA', 'सुरक्षा व 2FA')}
         </button>
 
-        <button 
+        {/* <button 
           onClick={() => setActiveTab('safety')}
           style={{
             padding: '10px 18px',
@@ -163,9 +190,9 @@ const AdminSettings = ({ isHindi }) => {
         >
           <Sliders size={16} />
           {t('Emergency Rules & GPS', 'आपातकालीन नियम व जीपीएस')}
-        </button>
+        </button> */}
 
-        <button 
+        {/* <button 
           onClick={() => setActiveTab('notifications')}
           style={{
             padding: '10px 18px',
@@ -184,7 +211,7 @@ const AdminSettings = ({ isHindi }) => {
         >
           <Bell size={16} />
           {t('Dispatch Gateways', 'अलर्ट व गेटवे')}
-        </button>
+        </button> */}
       </div>
 
       {/* Tab 1: Security & Authentication */}
@@ -257,13 +284,21 @@ const AdminSettings = ({ isHindi }) => {
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ marginTop: '6px' }}>
-                {t('Update Password', 'पासवर्ड अपडेट करें')}
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                style={{ marginTop: '6px' }}
+                disabled={loadingPassword}
+              >
+                {loadingPassword 
+                  ? t('Updating...', 'अपडेट हो रहा है...') 
+                  : t('Update Password', 'पासवर्ड अपडेट करें')}
               </button>
+
             </form>
           </div>
 
-          {/* Access Control & 2FA */}
+          {/* Access Control & 2FA
           <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -324,11 +359,11 @@ const AdminSettings = ({ isHindi }) => {
                 style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--primary)' }}
               />
             </div>
-          </div>
+          </div> */}
         </div>
       )}
 
-      {/* Tab 2: Emergency Rules & GPS */}
+      {/* Tab 2: Emergency Rules & GPS
       {activeTab === 'safety' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
           <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -419,9 +454,9 @@ const AdminSettings = ({ isHindi }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* Tab 3: Dispatch Gateways */}
+      {/* Tab 3: Dispatch Gateways
       {activeTab === 'notifications' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
           <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -519,7 +554,7 @@ const AdminSettings = ({ isHindi }) => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

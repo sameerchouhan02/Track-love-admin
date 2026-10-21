@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, LogOut, X } from 'lucide-react';
 
-const Sidebar = ({ isOpen, isHindi, navItems, activePath, onClose, onLogout }) => {
+const Sidebar = ({ isOpen, isHindi, navItems, activePath, onClose, onLogout, adminProfile }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const t = (en, hi) => (isHindi ? hi : en);
   const navigate = useNavigate();
+
+  const getInitials = (name) => {
+    if (!name) return 'AD';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <>
@@ -24,12 +31,30 @@ const Sidebar = ({ isOpen, isHindi, navItems, activePath, onClose, onLogout }) =
         </div>
 
         {/* User Card */}
-        <div className="sidebar-user-card">
+        <div 
+          className="sidebar-user-card"
+          onClick={() => {
+            navigate('/admin-profile');
+            if (window.innerWidth <= 768 && onClose) onClose();
+          }}
+          style={{ cursor: 'pointer' }}
+          title={t('My Profile', 'मेरी प्रोफाइल')}
+        >
           <div className="sidebar-avatar">
-            AD
+            {adminProfile?.avatar ? (
+              <img 
+                src={adminProfile.avatar} 
+                alt={adminProfile.name || 'Admin'} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              getInitials(adminProfile?.name)
+            )}
           </div>
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">Super Admin</div>
+            <div className="sidebar-user-name">
+              {adminProfile?.name || 'Super Admin'}
+            </div>
             <div className="sidebar-user-role">
               <span className="online-dot"></span>
               <span>{t('Active', 'सक्रिय')}</span>
