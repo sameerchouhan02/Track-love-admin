@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Scale, Video, FileText, UploadCloud, Play, ExternalLink, RefreshCw } from 'lucide-react';
+import { Scale, Video, FileText, UploadCloud, Play, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
 import { adminApi } from '../../_config/api';
 
 const STATES_LIST = [
@@ -15,24 +15,45 @@ const STATES_LIST = [
   "Karnataka"
 ];
 
+// 🏛️ Client PDF ke 3 Official Legal Sections aur unke Acts/Modules
+const SECTIONS_CONFIG = {
+  "Section A: Constitutional & Civil Rights": [
+    "The Constitution of India, 1950 (Fundamental Rights & Duties)",
+    "Digital Personal Data Protection (DPDP) Act, 2023 (Data Sovereignty)",
+  ],
+  "Section B: National Criminal & Security Codes": [
+    "Bharatiya Nyaya Sanhita (BNS), 2023 / Indian Penal Code",
+    "Information Technology (IT) Act, 2000 (Cyber Crimes & System Protections)",
+  ],
+  "Section C: Commerce, Labor, & Facilitation Codes": [
+    "The Indian Contract Act, 1872 (Agreements & Safe-Harbor Transactions)",
+    "Code on Wages & Industrial Relations (Intermediary Non-Employment Protections)",
+  ],
+};
+
+const DEFAULT_SECTION = "Section A: Constitutional & Civil Rights";
+
 const LawContent = ({ isHindi }) => {
   const [toast, setToast] = useState('');
   
   // Video Form State
   const [videoTitle, setVideoTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [videoCategory, setVideoCategory] = useState('Family Law & Protection');
+  const [videoSection, setVideoSection] = useState(DEFAULT_SECTION);
+  const [videoLawModule, setVideoLawModule] = useState(SECTIONS_CONFIG[DEFAULT_SECTION][0]);
   const [videoState, setVideoState] = useState('Central');
 
   // PDF Form State
   const [docTitle, setDocTitle] = useState('');
   const [pdfFile, setPdfFile] = useState(null);
-  const [docCategory, setDocCategory] = useState('Family Law & Protection');
+  const [docSection, setDocSection] = useState(DEFAULT_SECTION);
+  const [docLawModule, setDocLawModule] = useState(SECTIONS_CONFIG[DEFAULT_SECTION][0]);
   const [docState, setDocState] = useState('Central');
 
   const [loading, setLoading] = useState(false);
   const [lawList, setLawList] = useState([]);
   const [listLoading, setListLoading] = useState(false);
+  const [filterSection, setFilterSection] = useState('All');
 
   const t = (en, hi) => (isHindi ? hi : en);
 
@@ -69,7 +90,9 @@ const LawContent = ({ isHindi }) => {
       const res = await adminApi.addLegalVideo({
         title: videoTitle,
         url: videoUrl,
-        category: videoCategory,
+        section: videoSection,
+        lawModule: videoLawModule,
+        category: videoSection, // backward compatibility
         state: videoState
       });
 
@@ -100,7 +123,9 @@ const LawContent = ({ isHindi }) => {
 
       const formData = new FormData();
       formData.append('title', docTitle);
-      formData.append('category', docCategory);
+      formData.append('section', docSection);
+      formData.append('lawModule', docLawModule);
+      formData.append('category', docSection); // backward compatibility
       formData.append('state', docState);
       formData.append('pdf', pdfFile);
 
@@ -123,6 +148,11 @@ const LawContent = ({ isHindi }) => {
     }
   };
 
+  // Filtered List based on Section filter
+  const displayedList = filterSection === 'All' 
+    ? lawList 
+    : lawList.filter(item => (item.section === filterSection || item.category === filterSection));
+
   return (
     <div className="content">
       {/* Toast popup */}
@@ -131,6 +161,28 @@ const LawContent = ({ isHindi }) => {
           <span>{toast}</span>
         </div>
       )}
+
+      {/* ⚠️ MANDATORY PLATFORM LEGAL DISCLAIMER BANNER (Client PDF Requirement) */}
+      <div style={{
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
+        borderLeft: '4px solid #0284c7',
+        borderRadius: '14px',
+        padding: '18px 22px',
+        marginBottom: '26px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: '800', fontSize: '14px', marginBottom: '6px' }}>
+          <Scale size={18} />
+          <span>{t('MANDATORY PLATFORM LEGAL DISCLAIMER (DPDP Act & Safe-Harbor)', 'अनिवार्य प्लेटफ़ॉर्म कानूनी अस्वीकरण')}</span>
+        </div>
+        <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
+          {t(
+            'Track Loved Ones App operates strictly as a technological intermediary and neutral educational venue. The legal materials, section summaries, and video link resources hosted in this portal do not constitute formal legal advice, statutory representation, or professional advocacy. Utilization does not establish an attorney-client relationship.',
+            'ट्रैक लव्ड वन्स ऐप केवल एक तकनीकी मध्यस्थ और तटस्थ शैक्षिक स्थल के रूप में कार्य करता है। इस पोर्टल में होस्ट की गई कानूनी सामग्री औपचारिक कानूनी सलाह या वकालत का गठन नहीं करती है।'
+          )}
+        </p>
+      </div>
 
       {/* Forms Grid */}
       <div className="grid-2" style={{ marginBottom: '28px' }}>
@@ -150,14 +202,31 @@ const LawContent = ({ isHindi }) => {
               <label>{t('YouTube / Video URL', 'यूट्यूब / वीडियो यूआरएल')}</label>
               <input type="url" className="form-control" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." required />
             </div>
+
+            {/* 🏛️ Legal Section Dropdown */}
             <div className="form-group">
-              <label>{t('Law Category', 'कानून श्रेणी')}</label>
-              <select className="form-control" value={videoCategory} onChange={e => setVideoCategory(e.target.value)}>
-                <option>Family Law & Protection</option>
-                <option>Criminal Defense & Rights</option>
-                <option>Cyber Crime & Online Safety</option>
+              <label>{t('Legal Section (Syllabus)', 'कानूनी धारा / भाग')}</label>
+              <select 
+                className="form-control" 
+                value={videoSection} 
+                onChange={e => {
+                  const newSec = e.target.value;
+                  setVideoSection(newSec);
+                  setVideoLawModule(SECTIONS_CONFIG[newSec]?.[0] || '');
+                }}
+              >
+                {Object.keys(SECTIONS_CONFIG).map(sec => <option key={sec} value={sec}>{sec}</option>)}
               </select>
             </div>
+
+            {/* 📚 Specific Law Module Dropdown */}
+            <div className="form-group">
+              <label>{t('Law Module / Act', 'अधिनियम / मॉड्यूल')}</label>
+              <select className="form-control" value={videoLawModule} onChange={e => setVideoLawModule(e.target.value)}>
+                {SECTIONS_CONFIG[videoSection]?.map(mod => <option key={mod} value={mod}>{mod}</option>)}
+              </select>
+            </div>
+
             {/* 📍 State Filter Dropdown */}
             <div className="form-group">
               <label>{t('Applicable State', 'लागू राज्य')}</label>
@@ -186,14 +255,31 @@ const LawContent = ({ isHindi }) => {
               <label>{t('Select PDF Document', 'पीडीएफ दस्तावेज़ चुनें')}</label>
               <input type="file" className="form-control" accept=".pdf" onChange={e => setPdfFile(e.target.files[0])} required />
             </div>
+
+            {/* 🏛️ Legal Section Dropdown */}
             <div className="form-group">
-              <label>{t('Law Category', 'कानून श्रेणी')}</label>
-              <select className="form-control" value={docCategory} onChange={e => setDocCategory(e.target.value)}>
-                <option>Family Law & Protection</option>
-                <option>Criminal Defense & Rights</option>
-                <option>Cyber Crime & Online Safety</option>
+              <label>{t('Legal Section (Syllabus)', 'कानूनी धारा / भाग')}</label>
+              <select 
+                className="form-control" 
+                value={docSection} 
+                onChange={e => {
+                  const newSec = e.target.value;
+                  setDocSection(newSec);
+                  setDocLawModule(SECTIONS_CONFIG[newSec]?.[0] || '');
+                }}
+              >
+                {Object.keys(SECTIONS_CONFIG).map(sec => <option key={sec} value={sec}>{sec}</option>)}
               </select>
             </div>
+
+            {/* 📚 Specific Law Module Dropdown */}
+            <div className="form-group">
+              <label>{t('Law Module / Act', 'अधिनियम / मॉड्यूल')}</label>
+              <select className="form-control" value={docLawModule} onChange={e => setDocLawModule(e.target.value)}>
+                {SECTIONS_CONFIG[docSection]?.map(mod => <option key={mod} value={mod}>{mod}</option>)}
+              </select>
+            </div>
+
             {/* 📍 State Filter Dropdown */}
             <div className="form-group">
               <label>{t('Applicable State', 'लागू राज्य')}</label>
@@ -211,28 +297,44 @@ const LawContent = ({ isHindi }) => {
 
       {/* Published Law Content List */}
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Scale size={20} color="#0ea5e9" />
-            <h3 style={{ margin: 0 }}>{t('Published Legal Resources', 'प्रकाशित कानूनी संसाधन')} ({lawList.length})</h3>
+            <h3 style={{ margin: 0 }}>{t('Published Legal Resources', 'प्रकाशित कानूनी संसाधन')} ({displayedList.length})</h3>
           </div>
-          <button 
-            className="btn btn-secondary" 
-            onClick={fetchLawList}
-            disabled={listLoading}
-            style={{ padding: '6px 12px', fontSize: '13px' }}
-          >
-            <RefreshCw size={14} className={listLoading ? 'spin' : ''} /> {t('Refresh', 'रिफ्रेश')}
-          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Section Filter */}
+            <select 
+              className="form-control" 
+              style={{ width: 'auto', fontSize: '13px', padding: '6px 12px' }}
+              value={filterSection}
+              onChange={e => setFilterSection(e.target.value)}
+            >
+              <option value="All">{t('All Sections', 'सभी धाराएँ')}</option>
+              {Object.keys(SECTIONS_CONFIG).map(sec => (
+                <option key={sec} value={sec}>{sec.split(':')[0]}</option>
+              ))}
+            </select>
+
+            <button 
+              className="btn btn-secondary" 
+              onClick={fetchLawList}
+              disabled={listLoading}
+              style={{ padding: '6px 12px', fontSize: '13px' }}
+            >
+              <RefreshCw size={14} className={listLoading ? 'spin' : ''} /> {t('Refresh', 'रिफ्रेश')}
+            </button>
+          </div>
         </div>
 
         {listLoading ? (
           <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
             {t('Loading content...', 'सामग्री लोड हो रही है...')}
           </div>
-        ) : lawList.length === 0 ? (
+        ) : displayedList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-            {t('No legal resources published yet.', 'अभी तक कोई कानूनी संसाधन प्रकाशित नहीं किया गया है।')}
+            {t('No legal resources published yet for this selection.', 'इस चयन के लिए अभी तक कोई कानूनी संसाधन प्रकाशित नहीं किया गया है।')}
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -241,35 +343,60 @@ const LawContent = ({ isHindi }) => {
                 <tr>
                   <th>{t('Title', 'शीर्षक')}</th>
                   <th>{t('Type', 'प्रकार')}</th>
-                  <th>{t('Category', 'श्रेणी')}</th>
+                  <th>{t('Section & Law Module', 'धारा एवं अधिनियम')}</th>
                   <th>{t('State', 'राज्य')}</th>
                   <th>{t('Action', 'कार्रवाई')}</th>
                 </tr>
               </thead>
               <tbody>
-                {lawList.map(item => (
-                  <tr key={item._id}>
-                    <td style={{ fontWeight: '600' }}>{item.title}</td>
-                    <td>
-                      <span className={`badge ${item.type === 'video' ? 'badge-primary' : 'badge-secondary'}`} style={{ textTransform: 'capitalize' }}>
-                        {item.type === 'video' ? '🎬 Video' : '📄 PDF'}
-                      </span>
-                    </td>
-                    <td>{item.category}</td>
-                    <td>{item.state || 'Central'}</td>
-                    <td>
-                      <a 
-                        href={item.url} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="btn btn-primary" 
-                        style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
-                      >
-                        <ExternalLink size={13} /> {t('View', 'देखें')}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
+                {displayedList.map(item => {
+                  const sectionName = item.section || item.category || 'Section A';
+                  const isSecA = sectionName.includes('Section A');
+                  const isSecB = sectionName.includes('Section B');
+                  
+                  return (
+                    <tr key={item._id}>
+                      <td>
+                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{item.title}</div>
+                        {item.lawModule && (
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                            {item.lawModule}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`badge ${item.type === 'video' ? 'badge-primary' : 'badge-secondary'}`} style={{ textTransform: 'capitalize' }}>
+                          {item.type === 'video' ? '🎬 Video' : '📄 PDF'}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11.5px',
+                          fontWeight: '700',
+                          background: isSecA ? '#e0f2fe' : isSecB ? '#f3e8ff' : '#ecfdf5',
+                          color: isSecA ? '#0369a1' : isSecB ? '#7e22ce' : '#047857',
+                        }}>
+                          {sectionName.split(':')[0]}
+                        </span>
+                      </td>
+                      <td>{item.state || 'Central'}</td>
+                      <td>
+                        <a 
+                          href={item.url} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="btn btn-primary" 
+                          style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                        >
+                          <ExternalLink size={13} /> {t('View', 'देखें')}
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

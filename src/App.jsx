@@ -40,7 +40,7 @@ const navItems = [
   { icon: Building2, hi: 'व्यापार प्रोफ़ाइल', en: 'Business Profiles', path: '/business-profiles' },
   // { icon: Briefcase, hi: 'व्यापार पोस्ट', en: 'Business Posts', path: '/business-posts' },
   // { icon: FileText, hi: 'नौकरी पोस्ट', en: 'Job Posts', path: '/job-posts' },
-  // { icon: ShieldAlert, hi: 'चैट रिपोर्ट', en: 'Chat Reports', path: '/chat-reports' },
+  { icon: ShieldAlert, hi: 'चैट रिपोर्ट', en: 'Chat Reports', path: '/chat-reports' },
   { icon: Scale, hi: 'कानूनी सामग्री', en: 'Law Content', path: '/law-content' },
   { icon: CreditCard, hi: 'सदस्यताएँ', en: 'Subscriptions', path: '/subscriptions' },
   { icon: Landmark, hi: 'सरकारी अनुरोध', en: 'Govt Requests', path: '/govt-requests' },

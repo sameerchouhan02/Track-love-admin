@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Menu, Search, Bell, AlertTriangle, Phone, Battery, 
-  MapPin, X, CheckCircle, ExternalLink, ShieldAlert, RefreshCw 
+  MapPin, X, CheckCircle, ExternalLink, ShieldAlert, RefreshCw, VolumeX 
 } from 'lucide-react';
 import { apiClient } from '../../_config/api';
 
@@ -13,6 +13,8 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
   const [loading, setLoading] = useState(false);
   const [resolvingId, setResolvingId] = useState(null);
   const prevCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
+  const sirenAudioRef = useRef(null);
   const navigate = useNavigate();
 
   const getInitials = (name) => {
@@ -22,21 +24,64 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
     return name.substring(0, 2).toUpperCase();
   };
 
-  // 🔔 Browser Audio Beep/Siren jab naya alert aaye
+  // 🛑 Siren ko stop karne ka function
+  const stopAlertSiren = () => {
+    try {
+      if (sirenAudioRef.current) {
+        sirenAudioRef.current.osc.stop();
+        sirenAudioRef.current.lfo.stop();
+        sirenAudioRef.current.ctx.close();
+        sirenAudioRef.current = null;
+      }
+    } catch (e) {
+      // Audio already stopped
+    }
+  };
+
+  // 🚨 5 Minute (300 Seconds) High-Quality Emergency Siren (Smooth Wee-Woo Alarm)
   const playAlertSiren = () => {
     try {
+      stopAlertSiren(); // Pehle se chal rahi kisi siren ko band karein
+
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Main sound oscillator
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
+
+      // Pitch Modulator (LFO) - Smooth Wee-Woo bina kisi audio glitch/click ke
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.frequency.setValueAtTime(650, audioCtx.currentTime); // Base frequency
+
+      // Triangle wave se smooth pitch up-down hoti hai (1 cycle per second)
+      lfo.type = 'triangle';
+      lfo.frequency.setValueAtTime(1.0, audioCtx.currentTime);
+      lfoGain.gain.setValueAtTime(240, audioCtx.currentTime); // 410Hz se 890Hz tak continuous siren swing
+
+      lfo.connect(osc.frequency);
+
+      // Volume settings (Full loud & crystal clear)
+      gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.3);
+
+      const now = audioCtx.currentTime;
+      const duration = 300.0; // ⏱️ Poore 5 Minutes (300 Seconds)
+
+      osc.start(now);
+      lfo.start(now);
+
+      osc.stop(now + duration);
+      lfo.stop(now + duration);
+
+      sirenAudioRef.current = { osc, lfo, ctx: audioCtx };
     } catch (e) {
       console.log('Audio not allowed yet by browser interaction');
     }
@@ -48,10 +93,11 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
       const res = await apiClient.get('/sos/active');
       if (res.data?.success) {
         const fetchedAlerts = res.data.data || [];
-        // Agar naya alert judta hai to siren bajaayein
-        if (fetchedAlerts.length > prevCountRef.current && prevCountRef.current !== 0) {
+        // Agar naya alert judta hai to siren bajaayein (0 se 1 ho ya multiple)
+        if (!isInitialLoadRef.current && fetchedAlerts.length > prevCountRef.current) {
           playAlertSiren();
         }
+        isInitialLoadRef.current = false;
         prevCountRef.current = fetchedAlerts.length;
         setAlerts(fetchedAlerts);
       }
@@ -64,7 +110,10 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
   useEffect(() => {
     fetchActiveAlerts();
     const interval = setInterval(fetchActiveAlerts, 8000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      stopAlertSiren();
+    };
   }, []);
 
   // ✅ Alert Resolve karne ka handler
@@ -74,6 +123,7 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
       setResolvingId(id);
       const res = await apiClient.patch(`/sos/resolve/${id}`);
       if (res.data?.success) {
+        stopAlertSiren(); // Alert resolve hote hi siren turant shant ho jaye
         setAlerts(prev => prev.filter(a => a._id !== id));
         if (selectedAlert?._id === id) {
           setSelectedAlert(null);
@@ -191,13 +241,41 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
                     {isHindi ? `आपातकालीन अलर्ट्स (${alerts.length})` : `Emergency SOS (${alerts.length})`}
                   </span>
                 </div>
-                <button 
-                  onClick={fetchActiveAlerts} 
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}
-                  title="Refresh"
-                >
-                  <RefreshCw size={14} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {alerts.length > 0 && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        stopAlertSiren();
+                      }}
+                      style={{
+                        background: '#fee2e2',
+                        border: '1px solid #ef4444',
+                        color: '#dc2626',
+                        borderRadius: '8px',
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.2s'
+                      }}
+                      title="Stop Siren"
+                    >
+                      <VolumeX size={13} />
+                      {isHindi ? "सायरन बंद करें" : "Mute Siren"}
+                    </button>
+                  )}
+                  <button 
+                    onClick={fetchActiveAlerts} 
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}
+                    title="Refresh"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
+                </div>
               </div>
 
               {/* Dropdown Content */}
