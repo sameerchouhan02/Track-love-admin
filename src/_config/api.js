@@ -81,6 +81,11 @@ export const adminApi = {
     }),
       changePassword: (data) => apiClient.put("/admin/change-password", data),
 
+        // 5. Job & Business Opportunity Fraud Reports
+  getOpportunityReports: (params = {}) => apiClient.get("/admin/opportunity-reports", { params }),
+  deleteReportedPost: (postType, id) => apiClient.delete(`/admin/posts/${postType}/${id}`),
+
+
 };
 
 

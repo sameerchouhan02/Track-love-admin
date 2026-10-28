@@ -18,6 +18,7 @@ import Feedbacks from './pages/admin/Feedbacks';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminLogin from './pages/admin/AdminLogin';
+import OpportunityReports from './pages/admin/OpportunityReports';
 import { 
   LayoutDashboard, 
   Users as UsersIcon, 
@@ -40,6 +41,7 @@ const navItems = [
   { icon: Building2, hi: 'व्यापार प्रोफ़ाइल', en: 'Business Profiles', path: '/business-profiles' },
   // { icon: Briefcase, hi: 'व्यापार पोस्ट', en: 'Business Posts', path: '/business-posts' },
   // { icon: FileText, hi: 'नौकरी पोस्ट', en: 'Job Posts', path: '/job-posts' },
+    { icon: ShieldAlert, hi: 'धोखाधड़ी रिपोर्ट', en: 'Fraud Reports', path: '/opportunity-reports' },
   { icon: ShieldAlert, hi: 'चैट रिपोर्ट', en: 'Chat Reports', path: '/chat-reports' },
   { icon: Scale, hi: 'कानूनी सामग्री', en: 'Law Content', path: '/law-content' },
   { icon: CreditCard, hi: 'सदस्यताएँ', en: 'Subscriptions', path: '/subscriptions' },
@@ -173,6 +175,7 @@ function AppContent() {
             <Route path="/business-profiles" element={<BusinessProfiles isHindi={isHindi} />} />
             <Route path="/business-posts" element={<BusinessPosts isHindi={isHindi} />} />
             <Route path="/job-posts" element={<JobPosts isHindi={isHindi} />} />
+            <Route path="/opportunity-reports" element={<OpportunityReports isHindi={isHindi} />} />
             <Route path="/chat-reports" element={<ChatReports isHindi={isHindi} />} />
             <Route path="/law-content" element={<LawContent isHindi={isHindi} />} />
             <Route path="/subscriptions" element={<Subscriptions isHindi={isHindi} />} />
