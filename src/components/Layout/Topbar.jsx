@@ -12,7 +12,7 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resolvingId, setResolvingId] = useState(null);
-  const prevCountRef = useRef(0);
+  const seenAlertIdsRef = useRef(new Set());
   const isInitialLoadRef = useRef(true);
   const sirenAudioRef = useRef(null);
   const navigate = useNavigate();
@@ -93,12 +93,17 @@ const Topbar = ({ toggleSidebar, isHindi, setIsHindi, titleEn, titleHi, adminPro
       const res = await apiClient.get('/sos/active');
       if (res.data?.success) {
         const fetchedAlerts = res.data.data || [];
-        // Agar naya alert judta hai to siren bajaayein (0 se 1 ho ya multiple)
-        if (!isInitialLoadRef.current && fetchedAlerts.length > prevCountRef.current) {
+        const newAlerts = fetchedAlerts.filter(
+          (alert) => alert?._id && !seenAlertIdsRef.current.has(alert._id)
+        );
+
+        if (!isInitialLoadRef.current && newAlerts.length > 0) {
           playAlertSiren();
         }
+        fetchedAlerts.forEach((alert) => {
+          if (alert?._id) seenAlertIdsRef.current.add(alert._id);
+        });
         isInitialLoadRef.current = false;
-        prevCountRef.current = fetchedAlerts.length;
         setAlerts(fetchedAlerts);
       }
     } catch (err) {
