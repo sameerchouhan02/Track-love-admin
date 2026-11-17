@@ -228,16 +228,6 @@ const AdminDashboard = ({ isHindi }) => {
               </div>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px', fontWeight: '600', marginBottom: '6px' }}>
-                <span>Emergency SOS Response Queue</span>
-                <span style={{ color: 'var(--success)' }}>Zero Delay</span>
-              </div>
-              <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
-                <div style={{ width: '100%', height: '100%', background: 'var(--success)', borderRadius: '999px' }}></div>
-              </div>
-            </div>
-
             <div style={{ marginTop: '8px', padding: '14px', borderRadius: '12px', background: '#f8fafc', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '13px', fontWeight: '700' }}>Emergency Dispatch Tunnel</div>
