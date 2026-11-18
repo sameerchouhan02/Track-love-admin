@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  CreditCard, 
-  Clock, 
-  ShieldAlert, 
-  TrendingUp, 
-  ArrowUpRight, 
-  Activity, 
-  FileCheck2 
+import {
+  Users,
+  CreditCard,
+  Clock,
+  ShieldAlert,
+  TrendingUp,
+  ArrowUpRight,
+  Activity,
+  FileCheck2
 } from 'lucide-react';
 import { adminApi } from '../../_config/api';
 
@@ -89,7 +89,7 @@ const AdminDashboard = ({ isHindi }) => {
 
       {/* 4 Core Stat Cards */}
       <div className="grid-4" style={{ marginBottom: '28px' }}>
-        
+
         {/* Total Users */}
         <div className="card stat-card">
           <div className="stat-header">
