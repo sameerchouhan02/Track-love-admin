@@ -95,7 +95,7 @@ function AppContent() {
             localStorage.setItem('admin_user_data', JSON.stringify(res.data.data));
           }
         })
-        .catch((err) => console.error("Error loading admin profile:", err));
+        .catch(() => console.error("Admin profile loading failed."));
     }
   }, [isAuthenticated]);
 

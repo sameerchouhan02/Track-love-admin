@@ -220,7 +220,7 @@ const GovtRequests = ({ isHindi }) => {
       URL.revokeObjectURL(blobUrl);
       showToast(t(`Audit receipt downloaded for ${request.id}`, `ऑडिट रसीद डाउनलोड हो गई (${request.id})`));
     } catch (err) {
-      console.error('Download error:', err);
+      console.error('Government request download failed.');
       showToast('Download failed: ' + err.message);
     }
   };

@@ -54,8 +54,8 @@ const BusinessProfiles = ({ isHindi }) => {
           setBusinessCounts(res.data.counts);
         }
       }
-    } catch (err) {
-      console.error('Error fetching business profiles:', err.message);
+    } catch {
+      console.error('Business profile request failed.');
       showToast(t('Failed to load business profiles', 'व्यापार प्रोफ़ाइल लोड करने में विफल'));
     } finally {
       setLoadingBusiness(false);
@@ -91,8 +91,8 @@ const BusinessProfiles = ({ isHindi }) => {
         }
         fetchBusinessProfiles(businessStatusFilter);
       }
-    } catch (err) {
-      console.error('Error updating profile status:', err.message);
+    } catch {
+      console.error('Business profile status update failed.');
       showToast(err.response?.data?.message || err.message);
     } finally {
       setActionLoadingId(null);

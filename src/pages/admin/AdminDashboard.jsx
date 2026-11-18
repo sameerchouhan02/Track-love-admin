@@ -25,8 +25,8 @@ const AdminDashboard = ({ isHindi }) => {
         if (res.data?.success && Array.isArray(res.data.data)) {
           setTotalUsers(res.data.data.length);
         }
-      } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
+      } catch {
+        console.error('Dashboard stats request failed.');
       } finally {
         setLoadingUsers(false);
       }

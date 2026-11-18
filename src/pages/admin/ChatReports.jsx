@@ -32,8 +32,8 @@ const ChatReports = ({ isHindi }) => {
         setAnnouncement('');
         setTimeout(() => setBroadcasted(false), 5000);
       }
-    } catch (err) {
-      console.error('Broadcast failed:', err);
+    } catch {
+      console.error('Emergency broadcast failed.');
       setErrorMsg(err.response?.data?.message || err.message || 'Failed to send notification');
     } finally {
       setIsSending(false);

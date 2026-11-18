@@ -37,8 +37,8 @@ const AdminProfile = ({ isHindi }) => {
           setPhone(admin.phone || '');
           setAvatarUrl(admin.avatar || '');
         }
-      } catch (err) {
-        console.error('Error fetching admin profile:', err);
+      } catch {
+        console.error('Admin profile request failed.');
         showToast(
           err.response?.data?.message || t('Failed to load profile', 'प्रोफ़ाइल लोड करने में विफल'),
           'error'
@@ -110,8 +110,8 @@ const AdminProfile = ({ isHindi }) => {
           window.dispatchEvent(new CustomEvent('admin_profile_updated', { detail: updated }));
         }
       }
-    } catch (err) {
-      console.error('Error removing profile picture:', err);
+    } catch {
+      console.error('Profile picture removal failed.');
       showToast(
         err.response?.data?.message || t('Failed to remove profile picture', 'प्रोफ़ाइल चित्र हटाने में विफल'),
         'error'
@@ -156,8 +156,8 @@ const AdminProfile = ({ isHindi }) => {
           window.dispatchEvent(new CustomEvent('admin_profile_updated', { detail: updated }));
         }
       }
-    } catch (err) {
-      console.error('Error updating profile:', err);
+    } catch {
+      console.error('Admin profile update failed.');
       showToast(
         err.response?.data?.message || t('Failed to update profile', 'प्रोफ़ाइल अपडेट करने में विफल'),
         'error'

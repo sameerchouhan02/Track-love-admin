@@ -28,7 +28,7 @@ const AdminLogin = ({ onLogin, isHindi, setIsHindi }) => {
         setError(result.message || t('Invalid email or password.', 'अमान्य ईमेल या पासवर्ड।'));
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Admin login failed.');
       setError(err.message || t('Cannot connect to server.', 'सर्वर से कनेक्ट नहीं हो पा रहा है।'));
     } finally {
       setLoading(false);

@@ -60,7 +60,9 @@ apiClient.interceptors.response.use(
 
     const message =
       error.response?.data?.message || error.message || "Request failed";
-    console.error("API Response Error:", message);
+    console.error("API request failed.", {
+      statusCode: error.response?.status,
+    });
     return Promise.reject(new Error(message));
   }
 );
@@ -135,7 +137,7 @@ export const makeRequest = async (
     return handleResponse(response.data);
   } catch (error) {
     const message = error.message || "Request failed";
-    console.error("Request Error:", message);
+    console.error("API request failed.");
     throw new Error(message);
   }
 };
@@ -182,7 +184,7 @@ export const uploadFiles = async ({
     return res.data;
   } catch (err) {
     const message = err.message || "Upload failed";
-    console.error("Upload error:", message);
+    console.error("File upload request failed.");
     throw new Error(message);
   }
 };

@@ -48,8 +48,8 @@ const Users = ({ isHindi }) => {
       } else {
         setUsersError(result.message || 'Unexpected response while loading users.');
       }
-    } catch (err) {
-      console.error('Error fetching users:', err);
+    } catch {
+      console.error('Users request failed.');
       setUsersList([]);
       setUsersError(err.message || 'Unable to load users. Please try again.');
     } finally {
@@ -77,8 +77,8 @@ const Users = ({ isHindi }) => {
           return u;
         }));
       }
-    } catch (err) {
-      console.error("Error toggling block:", err);
+    } catch {
+      console.error("User block status update failed.");
     }
   };
 

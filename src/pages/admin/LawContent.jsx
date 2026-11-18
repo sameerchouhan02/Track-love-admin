@@ -70,8 +70,8 @@ const LawContent = ({ isHindi }) => {
       if (res.data?.success && Array.isArray(res.data.data)) {
         setLawList(res.data.data);
       }
-    } catch (err) {
-      console.error('Error fetching law content:', err);
+    } catch {
+      console.error('Law content request failed.');
     } finally {
       setListLoading(false);
     }
@@ -105,8 +105,8 @@ const LawContent = ({ isHindi }) => {
       } else {
         alert(data.message);
       }
-    } catch (err) {
-      console.error('Error publishing video:', err);
+    } catch {
+      console.error('Video publishing failed.');
       alert(err.message || 'Failed to publish video');
     } finally {
       setLoading(false);
@@ -140,8 +140,8 @@ const LawContent = ({ isHindi }) => {
       } else {
         alert(data.message);
       }
-    } catch (err) {
-      console.error('Error uploading PDF:', err);
+    } catch {
+      console.error('PDF upload failed.');
       alert(err.message || 'Failed to upload PDF');
     } finally {
       setLoading(false);

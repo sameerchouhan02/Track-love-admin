@@ -23,8 +23,8 @@ const OpportunityReports = ({ isHindi }) => {
       if (res.data?.success && res.data?.data?.reports) {
         setReports(res.data.data.reports);
       }
-    } catch (err) {
-      console.error('Error fetching reports:', err);
+    } catch {
+      console.error('Opportunity reports request failed.');
     } finally {
       setLoading(false);
     }
