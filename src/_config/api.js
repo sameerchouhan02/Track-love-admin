@@ -3,7 +3,12 @@ import axios from "axios";
 import { handleResponse } from "./authService";
 
 // const BACKEND_URL = "https://loveable-backend-5qi0.onrender.com/api/v1";
+<<<<<<< HEAD
 const BACKEND_URL = "http://localhost:3002/api/v1";
+=======
+const BACKEND_URL = "https://api.tracklovedones.com/api/v1";
+//const BACKEND_URL = "http://localhost:3002/api/v1";
+>>>>>>> ddb1df8b136267257193aa9e26944850647f3a94
 
 /**
  * Configured Axios Instance
@@ -44,6 +49,19 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    const requestUrl = error.config?.url || "";
+    if (
+      error.response?.status === 401 &&
+      /^\/admin(?:\/|$)/.test(requestUrl)
+    ) {
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_logged_in");
+      localStorage.removeItem("admin_user_data");
+      if (window.location.pathname !== "/login") {
+        window.location.assign("/login");
+      }
+    }
+
     const message =
       error.response?.data?.message || error.message || "Request failed";
     console.error("API Response Error:", message);
@@ -79,9 +97,9 @@ export const adminApi = {
     apiClient.put("/admin/profile", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-      changePassword: (data) => apiClient.put("/admin/change-password", data),
+  changePassword: (data) => apiClient.put("/admin/change-password", data),
 
-        // 5. Job & Business Opportunity Fraud Reports
+  // 5. Job & Business Opportunity Fraud Reports
   getOpportunityReports: (params = {}) => apiClient.get("/admin/opportunity-reports", { params }),
   deleteReportedPost: (postType, id) => apiClient.delete(`/admin/posts/${postType}/${id}`),
 
