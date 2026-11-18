@@ -3,13 +3,8 @@ import axios from "axios";
 import { handleResponse } from "./authService";
 
 // const BACKEND_URL = "https://loveable-backend-5qi0.onrender.com/api/v1";
-<<<<<<< HEAD
-const BACKEND_URL = "http://localhost:3002/api/v1";
-=======
-const BACKEND_URL = "https://api.tracklovedones.com/api/v1";
 //const BACKEND_URL = "http://localhost:3002/api/v1";
->>>>>>> ddb1df8b136267257193aa9e26944850647f3a94
-
+const BACKEND_URL = "https://api.tracklovedones.com/api/v1";
 /**
  * Configured Axios Instance
  */
