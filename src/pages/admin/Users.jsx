@@ -39,8 +39,11 @@ const Users = ({ isHindi }) => {
           city: u.city || u.villageTown || u.state || 'India',
           date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
           status: u.isBlocked ? 'Blocked' : (u.isVerified ? 'Active' : 'Pending'),
-          role: u.profession || u.adminrole || (u.role === 'company' ? 'Company Account' : 'Standard User'),
-          avatarBg: colors[index % colors.length]
+role: u.role === 'child' 
+  ? 'Child Account' 
+  : (u.role === 'company' 
+      ? 'Company Account' 
+      : (u.profession || u.adminrole || 'Standard User')),          avatarBg: colors[index % colors.length]
         }));
         setUsersList(formatted);
       }

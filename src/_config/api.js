@@ -2,8 +2,8 @@
 import axios from "axios";
 import { handleResponse } from "./authService";
 
-const BACKEND_URL = "https://loveable-backend-5qi0.onrender.com/api/v1";
-// const BACKEND_URL = "http://localhost:3002/api/v1";
+// const BACKEND_URL = "https://loveable-backend-5qi0.onrender.com/api/v1";
+const BACKEND_URL = "http://localhost:3002/api/v1";
 
 /**
  * Configured Axios Instance
@@ -85,7 +85,8 @@ export const adminApi = {
   getOpportunityReports: (params = {}) => apiClient.get("/admin/opportunity-reports", { params }),
   deleteReportedPost: (postType, id) => apiClient.delete(`/admin/posts/${postType}/${id}`),
 
-
+  getGrievances: () => apiClient.get("/admin/grievances"),
+  updateGrievanceStatus: (id, data) => apiClient.patch(`/admin/grievance/${id}/status`, data),
 };
 
 

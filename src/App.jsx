@@ -19,6 +19,8 @@ import AdminProfile from './pages/admin/AdminProfile';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminLogin from './pages/admin/AdminLogin';
 import OpportunityReports from './pages/admin/OpportunityReports';
+import GrievanceInbox from './pages/admin/GrievanceInbox';
+
 import { 
   LayoutDashboard, 
   Users as UsersIcon, 
@@ -45,6 +47,8 @@ const navItems = [
   { icon: ShieldAlert, hi: 'चैट रिपोर्ट', en: 'Chat Reports', path: '/chat-reports' },
   { icon: Scale, hi: 'कानूनी सामग्री', en: 'Law Content', path: '/law-content' },
   { icon: CreditCard, hi: 'सदस्यताएँ', en: 'Subscriptions', path: '/subscriptions' },
+  { icon: ShieldAlert, hi: 'शिकायत इनबॉक्स', en: 'Grievance Inbox', path: '/grievances' },
+
   { icon: Landmark, hi: 'सरकारी अनुरोध', en: 'Govt Requests', path: '/govt-requests' },
   // { icon: MessageSquare, hi: 'फीडबैक', en: 'Feedbacks', path: '/feedbacks' },
   { icon: User, hi: 'मेरी प्रोफाइल', en: 'My Profile', path: '/admin-profile', isDivider: true },
@@ -175,6 +179,8 @@ function AppContent() {
             <Route path="/business-profiles" element={<BusinessProfiles isHindi={isHindi} />} />
             <Route path="/business-posts" element={<BusinessPosts isHindi={isHindi} />} />
             <Route path="/job-posts" element={<JobPosts isHindi={isHindi} />} />
+            <Route path="/grievances" element={<GrievanceInbox isHindi={isHindi} />} />
+
             <Route path="/opportunity-reports" element={<OpportunityReports isHindi={isHindi} />} />
             <Route path="/chat-reports" element={<ChatReports isHindi={isHindi} />} />
             <Route path="/law-content" element={<LawContent isHindi={isHindi} />} />
