@@ -35,8 +35,8 @@ const GrievanceInbox = ({ isHindi }) => {
       if (res.data?.success && res.data?.data?.grievances) {
         setGrievances(res.data.data.grievances);
       }
-    } catch (err) {
-      console.error('Error fetching grievances:', err);
+    } catch {
+      console.error('Error fetching grievances.');
     } finally {
       setLoading(false);
     }
